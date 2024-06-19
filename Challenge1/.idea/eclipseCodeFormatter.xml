@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="EclipseCodeFormatterProjectSettings">
+    <option name="selectedGlobalProfile">
+      <Settings>
+        <option name="disabledFileTypes" value="feature;ts;tsx;js;jsx;jrmlx;kt;" />
+        <option name="eclipseVersion" value="CUSTOM" />
+        <option name="formatSeletedTextInAllFileTypes" value="false" />
+        <option name="formatter" value="ECLIPSE" />
+        <option name="id" value="1563002857898" />
+        <option name="importOrderConfigFilePath" value="$PROJECT_DIR$/../../linux-dev-vm/intellij.importorder" />
+        <option name="importOrderFromFile" value="true" />
+        <option name="name" value="Bertschi" />
+        <option name="pathToConfigFileJava" value="$PROJECT_DIR$/../../linux-dev-vm/BertschiDigitalLogistics_Formatter.xml" />
+        <option name="selectedJavaProfile" value="Bertschi" />
+      </Settings>
+    </option>
+  </component>
+</project>

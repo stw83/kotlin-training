@@ -1,0 +1,9 @@
+
+…kotlin:S6615";Remove this variable, which is assigned but never accessed.(“¥ÂÛıÿÿÿÿ8‡ñÑç2J$773cf1b3-40d3-4903-9766-b51e48f5c917
+pkotlin:S6615"&The value assigned here is never used.( Ì–Óúÿÿÿÿ8‡ñÑç2J$8cd4650c-3fbf-4edd-9fc7-395d036a08be
+pkotlin:S6615"&The value assigned here is never used.(ÿôÁ¡ÿÿÿÿÿ8‡ñÑç2J$d2269d35-d1c9-40b8-8530-135e659829a6
+xkotlin:S1481".Remove this unused "employee2" local variable.(÷É°¦ûÿÿÿÿ8É¯Ùç2J$47eab9c2-dd11-4038-8e04-5d77981cc08c
+nkotlin:S1481
+")Remove this unused "list" local variable.(‚’èà8ˆñÑç2J$c6749a6a-b03c-4e51-bfb0-c28a8f40cd93
+~kotlin:S1481"4Remove this unused "autoboxedString" local variable.(ê¥İĞûÿÿÿÿ8ˆñÑç2J$6fec81de-5ca3-45de-b2cc-46c9eb21f7d2
+{kotlin:S1481"6Remove this unused "immutableVariable" local variable.(íıé¾8ˆñÑç2J$159b8ffb-1b20-40e1-8743-5af80e8db1ce

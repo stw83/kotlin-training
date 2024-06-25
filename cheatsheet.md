@@ -377,11 +377,174 @@ There are specific primitive type arrays (e.g. `val array = IntArray(5)` or `val
 
 # OO and Kotlin: Classes, Functions, Inheritance
 
+
 ## Kotlin's Access Modifiers
 
-## Declaring Classes and Using COnstructors in Kotlin
+- Kotlin can have attributes & functions on top and on class level
+- Visibilities in Kotlin
+  - public
+  - private
+  - proteted
+  - **internal**
+
+### Top-Level Items
+- Top level item are public by default (in java they are package private)
+- If top level item is delcared as private, only all code inside the same class can access it (Java can only have one public class per source file)
+  - Kotlin supports definition of top level private classes (java not as nobody may see them)
+
+the following code is valid in kotlin:
+```kotlin
+
+fun main(){
+  val emp = Employee();
+  print(emp);
+}
+
+private class Employe{}
+```
+- protected is not available for top-level items
+- top-level items defined with **internal** are available within the same module (group of files)
+
+!(img/topLevelItemsAccesModifiers.png "Overview for TopLevel Items")
+
+### Class internal items
+more or less the same for java and kotlin
+
+### using kotlin and java in parallel
+there are situations when java can see kotlin properties that you cannot see in kotlin. COmpiler makes attribute named ugluy so that you should get it while using by the strange name.
+
+## Declaring Classes and Using Constructors in Kotlin
+
+- in kotlin all classes are ***public final*** by default
+
+### long version of class with constructor
+```kotlin
+// primary constructor is defined outside of the class
+class Employee constructor(firstName: String){
+
+  val firstName: String
+
+  // Initialzer block - is NOT a constructor!!
+  init {
+    thist.firstName = firstName
+  }
+
+  // further secondary constructors can be defined here
+}
+```
+### shorter version
+this is possible if in the constructor/init only needs simple variable/property assignments
+```kotlin
+class Employee constructor(firstName: String){
+  val firstName: String = firstName;
+}
+```
+
+### more shorter definition
+```kotlin
+class Employee constructor(val firstName: String){}
+```
+
+by adding val to the primary constructor the compiler automatically derives that this is a class property and assigns the passed value to the class property having the same name as defined in the primary constructor
+
+### shortest definition
+
+as it is known that outside of the class block this is the definition of the primary constructor there is no need to write 'constructor*
+
+```kotlin
+class Employee(val firstName: String){}
+```
+
+in case annotations for an argument or access modifiers for the constructors are required this short version does not work, e.g. in case of this:
+
+```kotlin
+class Employee proteced constructor(@NonNull val firstName: String){}
+```
+
+### Having default values in constructors
+often multiple constructors are provided given the option to define some attributes, if they are not set some default values will be used by the constructors and pass it to the constructors with all args
+
+#### long version
+```kotlin
+class Employee(val firstName: String){
+
+  val fullTime: Boolean = true
+
+  // No 'val firstName' as this member attribute is 'controlled' by primary constructor
+  // ':this(firstName)' describes invocation of primary constructor pasing firstName prop
+  constructor(firstName: String, fullTime: Boolean ): this(firstName) {
+    // primary constructor needs to delegete/call primary constructors --> done by ':this()'
+    this.fullTime = fullTime;
+  }
+}
+```
+- val/var in constructor definition of secondary constructors are not creating this property and hence they are not allowed (only passing the arg is possible - not creating the member/property as well - this can only be done in the primary constructor)
+
+
+#### shorter version
+```kotlin
+class Employee(val firstName: String, var fullTime: Boolean = true){}
+```
+- fullTime is defined as an optional parameter within the primary constructor
+
+#### Reducing number of constructors
+Idea is to provide all the parameters by the primary constructor and having default values - hence it should be possible to reduce the number of constructors dramatically.
+
+```kotlin
+class Employee(val firstName: String, var fullTime: Boolean = true)
+```
+
+### Without primary constructor
+* possible to have class without a primary constructor - this means now `()` after the name of the class
+* Without a primary constructor it is possible to have multiple secondary constructors
+* It's also possible to set default values in secondary constructors
+
+```kotlin
+class Demo{
+  val dummy String;
+
+  constructor() {
+    dummy = "Hello"
+  }
+}
+```
 
 ## Properties and Backing Fields in Kotlin
+* Kotlin only has properties - no fields --> see 
+[Docu](https://kotlinlang.org/docs/properties.html#properties-and-fields)
+* by default props have visibility ***public**
+* Accessing public props by <objectName>.<propertyName> - assinging a value can be done by `emp.fullTime = true` -> this call is redirectired to the setter method
+* if a property is defined as private in Kotlin, it is not possible to change / access the value from outside - even if you generate getter/setter for the property
+* getters/setters in kotlin must have the same visibility as the property has
+* In case the default generated getters and setters (having same visibility as the prob) are not sufficient, it is possible to write own getters and setters
+  * in this case, they need to be written/created explicitly inside the class (hence not within the primary constructor)
+  * The argument in the parameter of the primary Constructor is just there, but it is not a declaration - Kotlin won't create an assign the value automatically
+  * parameter declaration needs to be done by our one
+  * in our onw getter/setter methods we need to invoke the Backing Field `field`
+  * Setting values within the constructors, the custom setter method ***is not*** invoked
+
+```kotlin
+class Employee(val firstName: String, fullTime: Boolen = true){
+  // fullTime is only a parameter, not a declaration anymore!
+
+    // Getter/Setter is generated automatically
+    var fullTime = fullTime
+    // Custom geters/setters immedeately after the property declaration
+    get(){
+      print("Running the custom get")
+      // Backing field - only place were we can access it directly
+      return field
+    }
+    set(value){
+      print("Running the custom set")
+      field = value
+    }
+
+  // will access our own getter method
+  print(Employee().fullTime)
+
+}
+```
 
 ## Constants and Data Classes
 
@@ -390,6 +553,30 @@ There are specific primitive type arrays (e.g. `val array = IntArray(5)` or `val
 ## Extension Functions
 
 ## Inline Function
+
+## Inheritance in Kotlin - Part 1
+
+## Inheritance in Kotlin - Part 2
+
+## Interface in Kotlin
+
+## Singletons in Kotlin
+
+## Companion Objects in Kotlin
+
+## Anonymous Objects in Kotlin
+
+## Enums in Kotlin
+
+## Imports in Kotlin
+
+## The Internal Access Modifier
+
+## Kotlin Challenge (3.1)
+
+## Kotlin Challenge (3.2)
+
+
 
 ```kotlin
 

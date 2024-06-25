@@ -548,33 +548,753 @@ class Employee(val firstName: String, fullTime: Boolen = true){
 
 ## Constants and Data Classes
 
+* Kotlin supports TopLevel functions and constants - so no/less need for static classes
+* Constants typically created as VAL
+
+```kotlin
+
+val MY_CONST=100
+
+fun main(){
+  print(MY_CONST)
+}
+```
+
+### Data Classes
++ typically used for storing data/state - only having fields with according getters and setters without any further logic
+* are defined by `data class <NAME>`
+
+```kotlin
+data class Car(var color: String, val model: String, val year: Int) {
+
+}
+
+fun main(){
+    val car1 = Car("blue", "Daimler", 2015)
+    val car2 = car1.copy()
+    // copy and change property
+    val car3 = car1.copy(year = 2016, color = "green")
+
+    println(car1 == car2)     // true - auto-generated 
+}
+
+```
+* data classes have a toString(), hashCode(), equalTo() and copy() method implemented by default - and can be overriden if required
+
+* Primary Constructor of data classes needs to have at least one parameter
+* All parameter of primary constructor needs to be marked with `val` or `var`
+* data classes cannot be abstract or sealed (see inheritance) or inner class
+
 ## Kotlin Function Basics
+
+* syntax of functions is identical independent if they are declared inside or outside of a class
+* basic sytax is `fun <funName> (<parameterList>) <:returnType>{}`
+  * fun is the keyword
+  * name fo the function
+  * parameterList including optional default value (even if a default value is provided the parameter type needs to be defined and **cannot be derived by the compiler**!)
+  * return type - default return type is `unit` and does not need to be specified
+
+```kotlin
+fun labelMultiply(operand1: Int, operand2: Int, label: String): String {
+  return ("$label ${operand1 * operand2}")
+}
+```
+* This function has an *** block - body *** - inside the curley braces
+
+### Simplification of labelMultiply function
+
+* as we only have one line no return is required, hence also no brackets
+
+```kotlin
+fun labelMultiply(operand1: Int, operand2: Int, label: String =" The answer is:") =
+  "$label ${operand1 * operand2}"
+```
+* Function returns everything after the `=` sign
+* return type is inferred automatically
+* This function has an *** expression - body *** - after the equal sign 
+* Invoke method with random parameter order - using **named arguments** (can also be used if the order doesn't differ ):
+
+  `println(labelMultiply(label = "Here's the result: ", operand2 = 3, operand1 = 4))`
+
+### Vararg parameter
+* providing multiple(undefined) values of same type, dann use parameter type vararg
+* only one vararg is allowed as parameter
+* vararg does not need to be the last parameter in den function declaration, but then named arguments need to be used!
+
+### Spread-Operator
+  ```kotlin
+  fun main(){
+    // arrayOf uses vararg as parameter
+    val manyCars = arrayOf(car1, car2, car3)
+
+    printColors(manyCars)       // not working as type missmatch (this is working in Java)
+
+    // using spread operator *
+    printColors(*manyCars)      // elements of array are passed --> allowed/working
+    
+  }
+
+  fun printColors(vararg cars: Car) {
+    for (car in cars) {
+      println(car.color)
+    }
+  }
+  ```
+
+* Spread-Operator can be used anytime we **want to unpack the elements of an array**
+  ```kotlin
+  val moreCars = arrayOf(car2, car3)
+  val car4 = car2.copy()
+
+  val lotsOfCarsWrong = arrayOf(manyCars, moreCars, car4)   // here arrays inside an array
+  val lotsOfCars = arrayOf(*manyCars, *moreCars, car4)      // array of car elements
+  ```
 
 ## Extension Functions
 
+* Adding function to existing classes - without creating subclasses
+* is only a syntaxical illusion
+
+```kotlin
+// Java way
+class Utils {
+  fun upperFirstAndLast(str: String): String {
+    val upperFirst = str.substring(0,1).toUpperCase() + str.substring(1)
+    return upperFirst.substring(0, upperFirst.length - 1) + 
+            upperFirst.substring(upperFirst.length - 1, upperFirst.length).toUpperCase()
+  }
+}
+```
+* Would be desirable to add this function to the java/kotlin string class
+
+```kotlin
+// Extension function way
+
+// Prefix the method name with the class the function should be associated to (String class is the receiver type)
+fun String.upperFirstAndLast(): String {
+  val upperFirst = this.substring(0, 1).toUpperCase() + this.substring(1)
+  return upperFirst.substring(0, upperFirst.length - 1) + 
+           upperFirst.substring(upperFirst.length - 1, upperFirst.length).toUpperCase()
+}
+
+// invocation of extension function
+val s = "all in lower case"
+s.upperFirstAndLast()
+```
+
+### Simplification
+
+* `this` inside the extension function is not required and can be removed!
+
+```kotlin
+// Extension function way
+
+// Prefix the method name with the class the function should be associated to (String class is the receiver type)
+fun String.upperFirstAndLast(): String {
+  val upperFirst = substring(0, 1).toUpperCase() + substring(1)
+  return upperFirst.substring(0, upperFirst.length - 1) + 
+           upperFirst.substring(upperFirst.length - 1, upperFirst.length).toUpperCase()
+}
+```
+
 ## Inline Function
+
+* works best for functions with lambda parameters
+* often compiler inlines on his own
+* is done by using keyword inline
+
+  `inline fun labelMultiply(operand1: int, operand2: int, label: String) ...`
+
+* after compilation the inline function is inlined and no function call is made during runtime
 
 ## Inheritance in Kotlin - Part 1
 
+* everything in Kotlin is `public final` (classes, toplevel functions, ...)
+* 
+
+### With primary constructor
+we have an empty primary constructor doing nothing
+```kotlin
+// needs to be defined with open to enable beeing extended (without class is final!)
+// () is the primary constructor
+open class Printer() {
+
+}
+
+// LaserPrinter extends Printer (: is the syntax for extending)
+// by both () constructors are added and invoked accordingly
+class LaserPrinter(): Printer() {
+}
+```
+
+###  Without primary constructor
+```kotlin
+// needs to be defined with open to enable beeing extended (without class is final!)
+// () is the primary constructor
+open class Printer {
+
+}
+
+// LaserPrinter extends Printer (: is the syntax for extending)
+class LaserPrinter: Printer {
+  constructor(): super()
+}
+```
+### Properties and using abstract class
+* in case of abstract classes, open keyword is not required as it is redundant as abstract class needs to be extended as not class can be instantiated
+```kotlin
+abstract class Printer(val modelName: String) {
+  // make function overridable
+  open fun printModel() = println("The model name of this printer is $modelName")
+  // abstract functions are open by default (as they need to be overridden)
+  abstract fun bestSellingPrice(): Double
+}
+
+// as modelName is defined in base class no val/var in the arg list!
+class LaserPrinter(modelName: String): Printer(modelName) {
+  // override keyword needed
+  override fun printModel() = println("The model name of this laser printer is $modelName")
+
+  override fun bestSellingPrice(): Double = 129.99
+}
+```
+
 ## Inheritance in Kotlin - Part 2
 
+* by adding override it means that subclasses may also override this function
+* if subclasses should not override a function, add `final` keyword
+  ```kotlin
+  abstract class Printer(val modelName: String) {
+    open fun printModel() = println("The model name of this printer is $modelName")
+    abstract fun bestSellingPrice(): Double
+  }
+
+  open class LaserPrinter(modelName: String): Printer(modelName) {
+    // avoid overriding in sublcass using explicit final keyword
+    final override fun printModel() = println("The model name of this laser printer is $modelName")
+    override fun bestSellingPrice(): Double = 129.99
+  }
+
+  class ColorLaserPrinter(modelName: String): LaserPrinter(modelName) {
+    // compile error as parent method is defined final
+    override fun printModel() = println("this is my way of doing in")
+  }
+  ```
+
+### Parameters of primary constructors of subclasses don't need to match
+  ```kotlin
+  abstract class Printer(val modelName: String) {
+    open fun printModel() = println("The model name of this printer is $modelName")
+    abstract fun bestSellingPrice(): Double
+  }
+
+  open class LaserPrinter(modelName: String, val ppm: Int): Printer(modelName) {
+    // avoid overriding in sublcass using explicit final keyword
+    final override fun printModel() = println("The model name of this laser printer is $modelName")
+    override fun bestSellingPrice(): Double = 129.99
+  }
+
+  class ColorLaserPrinter(modelName: String): LaserPrinter(modelName) {
+    // compile error as parent method is defined final
+    override fun printModel() = println("this is my way of doing in")
+  }
+  ```
+
+Remember:
+* Secondary constructors need to delegate to primary constructor
+* invocation of only secondary constructor only possible if no primary constructor exists (???)
+
+  ```kotlin
+  // class without primary constructor
+  open class Something {
+    val someProperty: String
+
+    // secondary constructor
+    constructor(someParameter: String){
+      someProperty = someParameter
+    }
+  }
+
+  class SoemthingElse: Something {
+    constructor(someOtherParameter: String) : super(someOtherParameter)
+  }
+  ```
+
+  * Adding primary constructors to above example:
+    * There are several problems / challenges using primary and secondary constructors in common and defining responsiblity of who is initalizing which property (especially if they are val)
+
+  ```kotlin
+    // class without primary constructor
+    open class Something(val x: Int) {
+      val someProperty: String
+
+      // secondary constructor
+      constructor(someParameter: String, y: Int): this(y) {
+        // not sufficient to only initialize it in secondary constructor
+        someProperty = someParameter
+      }
+    }
+
+    class SoemthingElse: Something {
+      constructor(someOtherParameter: String, z: Int ) : super(z)
+    }
+  ```
+  using only secondary constructors:
+  ```kotlin
+    open class Something {
+      val someProperty: String
+
+      constructor(someParameter: String) {
+        someProperty = someParameter
+        println("inside parents constructor")
+      }
+    }
+
+    class SoemthingElse: Something {
+      constructor(someOtherParameter: String):super(someOtherParameter) {
+        println("inside childs constructor")
+      }
+    }
+    ```
+
+* Data classes are closed type and cannot be extended!
+
 ## Interface in Kotlin
+* not much differences compared to java interfaces
+* syntax differs
+* Interfaces are extendable by default (no open required)
+
+```kotlin
+interface MyInterface {
+
+  // interfaces may have properties (property is currently abstract)
+  val number: Int
+  // val number2: Int = 50 // error as property initializers are not allowed
+  val number2: Int
+  get() = number * 100;    // default value by doing getter magic and override it
+
+  fun myFunction(str: String): String
+}
+
+interface MySubInterface:MyInterface {
+  
+  fun mySubFunction(num: Int): String
+}
+
+open class Something: MySubInterface {
+
+  override val number: Int = 25
+
+  override fun myFunction(str: String): String {
+
+  }
+
+  override fun mySubFunction(num: Int): String {
+    
+  }
+}
+```
+* Properties in interfaces don't have `backing fields`, hence `field` accessor doesn't work
 
 ## Singletons in Kotlin
+* Kotlin can declare a class and final instance at once using the `object` keyword
+* This is typically used for the following three use cases:
+  * Singleton
+  * Companion Objects
+  * Object Expressions
+
+### Singleton
+To create an singleton object use the object keyword and it is ensured that only one instance of this class will exist
+
+```kotlin
+
+fun main(){
+  println(CompanyCommuications.getTagLine()))
+  println(CompanyCommuications.getCopyrightLine()))
+}
+
+// only have one Company Communication for the whole company --> singleton
+object CompanyCommuications {
+  val currentYear = Year.now().value
+
+  fun getTagLine() = "Our company rocks!"
+  fun getCopyrightLine() = "Copyright \u00A9 $currentYear Our Company. All rights reserved."
+}
+```
+* accessing the methods of the object by using the class name
+* Singleton object is created the first time the class is used
+* Object declarations can extend classes or interfaces
 
 ## Companion Objects in Kotlin
 
+* Second use case for the `object` keyword
+* As static keyword doesn't exist in kotlin , instead we use topLevel properties and functions
+*  
+
+```kotlin
+class SomeClass {
+  private val privateVar = 6
+
+  fun accessPrivateVar() {
+    println("I'm accessing privateVar: $privateVar")
+  }
+}
+```
+
+* It is not possible to access/invoke accessPrivateVar without having an instance of this class (as we would have in java with a static method)
+* To make this possible in Kotlin, we have to use Companion Objects
+
+```kotlin
+class SomeClass {
+  companion object {
+    private var privateVar = 6
+    
+    // Accessor also needs to be inside companion object!
+    fun accessPrivateVar() = "I'm accessing privateVar: $privateVar"
+  }
+}
+
+fun main(){
+  // Accessing method of companion object
+  println(SomeClass.Companion.accessPrivateVar())
+}
+```
+
+* More or less anything inside the companion object is more or less static (like it would be in Java)
+
+As kotlin is smart enough to know that we want to use the companion object the following code is also valid:
+fun main(){
+  // Accessing method of companion object - old way
+  //println(SomeClass.Companion.accessPrivateVar())
+ 
+  println(SomeClass.accessPrivateVar())
+}
+
+### Named Companion object
+
+We can name the companion Object - then the accessor needs also to use this named companion
+
+```kotlin
+class SomeClass {
+  companion object SomeCompanion {
+    private var privateVar = 6
+    
+    // Accessor also needs to be inside companion object!
+    fun accessPrivateVar() = "I'm accessing privateVar: $privateVar"
+  }
+}
+
+fun main(){
+  // Accessing method of companion object
+  println(SomeClass.SomeCompanion.accessPrivateVar())
+}
+```
+
+### Further use case for company objects
+* Invoking private constructor - hence use it for Factory-Pattern
+
+* Approach without company object
+```kotlin
+class SomeClass {
+  val someString: String
+
+  constructor(str: String) {
+    someString = str
+  }
+
+  constructor(str: String, lowerCase: Boolean) {
+    if (lowerCase){
+      someString = str.toLowerCase()
+    } else {
+      someString = str.toUpperCase()
+    }
+  }
+}
+
+fun main(){
+  // Accessing method of companion object
+  println(SomeClass.SomeCompanion.accessPrivateVar())
+}
+```
+
+* Approach using company object - Factory Pattern
+  * as constructor shouldn't be invoked from outside directly the primary constructor neeeds to be defined as private (--> private constructor)
+```kotlin
+class SomeClass private constructor(val someString: String) {
+
+  copanion object {
+    fun justAssign(str: String) = SomeClass(str) 
+    fun upperOrLowerCase(str: String, lowerCase: Boolean): SomeClass {
+      if (lowerCase){
+        return SomeClass(str.toLowerCase())
+      } else {
+        return SomeClass(str.toUpperCase())
+      }
+    }
+  }
+
+  fun main(){
+    val someClass1 = SomeClass.justAssign("this is the string as it is")
+    val someClass2 = SomeClass.upperOrLowerCase("this isn't the string as it is", false)
+
+    // INVALID as constructor is private!
+    val someClass3 = SomeClass()
+  }
+}
+```
+
 ## Anonymous Objects in Kotlin
+
+
+```kotlin
+interface SomeInterface {
+  fun mustImplement(num: Int) : String
+}
+
+fun wantsSomeInterface(si: SomeInterface) {
+  println("Printing from wantsSomeInterface ${si.mustImplement(22)})
+}
+```
+
+Invoking with inner class / anonymous instances:
+```kotlin
+fun main(){
+  wantsSomeInterface(object: SomeInterface {
+    override fun mustImplement(num: Int) = "This is from musterImplement: ${num * 100}"
+  })
+}
+```
 
 ## Enums in Kotlin
 
+* Very similar to Enums in Java
+
+```kotlin
+enum class Department {
+  HR, IT, ACCOUNTING, SALES
+}
+```
+
+With properties and functions:
+```kotlin
+enum class Department(val fullName, val numEmployees: Int) {
+  HR("Human Resources", 5), 
+  IT("Information Technology", 10),
+  ACCOUNTING("Accounting", 3),
+  SALES("Sales", 20)
+}
+```
+
+Adding functions:
+```kotlin
+enum class Department(val fullName, val numEmployees: Int) {
+  HR("Human Resources", 5), 
+  IT("Information Technology", 10),
+  ACCOUNTING("Accounting", 3),
+  SALES("Sales", 20);           // <-- semicolon is required here 
+
+  fun getDeptInfo() = "The $fullName department has $numEmployees employees"
+}
+```
+
+```kotlin
+fun main(){
+  println(Department.ACCOUNTING.getDeptInfio())
+}
+
+```
+
 ## Imports in Kotlin
 
+* packages not required in Kotlin
+* classnames may not match the filename they are declared in
+* Imports can be named customly using the `as` keywor
+
+  `import com.abc.String as MyString`
+* keyword `as` is also applicable for top level functions
+
 ## The Internal Access Modifier
+
+* private means to be **visible within the same file**
+* internal means visible within the same module!
 
 ## Kotlin Challenge (3.1)
 
 ## Kotlin Challenge (3.2)
+
+
+# Loops, and the if, When, and Try/Catch Expressions
+
+## For Loop
+* typical for loop `for (int i = 0; i < 10; i++)` doesn't exist in Kotlin
+* Kotlin uses **range-loop** following `for (i in 1..5)`
+  * typically is used with range: `var range = 1..5` (1 and 5 are ***included in the range***!!)
+  * char range: `var charRange = 'a'..'z'` (a and z are ***included in the range***!!)
+  * string range: `var stringRange = 'ABC'..'XYZ'` 
+  * used types needs to be comparable as they are compared with the in Operator of the loop
+  * backwards-ranges: `var backwardRange = 5.downTo(1)` - this is not the same as `5..1`
+  * `1..5.reversed()` - only for numeric and charater types
+  * `for ( x in 'ABC'..'XYZ')` is not working as for the string range no iterator exists - just the comparable functionality is available to test if a provided value is in the defined range
+  * `for (c in "Hello")` is working as string class has an iterator that is used
+  * `var myRange = 1..20` and `myRange.step(4)` defines the step width and results in 1, 5, 9, 13, 17
+  * same without a variable `for (num in 1..20 step 4)` 
+  * `for ( i in 20 downTo 15)` results in 20, 19, 18, 17, 16, 15
+* Using keyword **until** to not include the end value (exclusive):
+  `for (i in 1 until 5)` results in 1, 2, 3, 4
+* iterating over arrays
+  * `for (season in arrayOf("spring", "summer", "fall", "winter")) {print(season)}`
+  * `val notAseason = "blub" !in arrayOf("spring", "summer")`
+  * using index:
+    ```kotlin
+    val seasons = arrayOf("spring", "summer", "fall", "winter")
+    for (index in seasons.indices) {
+      println("${seasons[index]} is season number $index")
+    }
+    ```
+  * using lambda: ``` seasons.forEach { println(it) }```
+  * using lambda with index: 
+    ` seasons.forEachIndexed { index, value -> println("$value is season number $index") }`
+  
+### Named Loop
+* especially if using nested loops and want to break / stop different loops
+* in die example in most innerst loop (k) want to break the parent look (j - jloop)
+  ```kotlin
+    for (i in 1..5){
+      println("i = $i")
+      jloop@ for (j in 1..5){
+        println("j = $j")
+        for (k in 10..14) {
+          println("k = $k")
+          if (k == 12) {
+            break@jloop;
+          }
+        }
+      }
+    }
+  ```
+
+## If Expression
+* If-condition can evaluate to an value and not only boolean
+* ternary operator does not exists in kotlin - but short is: `val num = if (someCondition) 50 else 60`
+* if expression allow to return value of the if and else block to assign to a variable:
+  ```kotlin
+  val num2 = if (someCondition){
+    println("something)
+    50
+  } else {
+    println(" something else)
+    60
+  }
+
+  println(num2)   // 50 or 60
+  ```
+  in this case, the else branch must exist in any way as num2 needs to be assigned
+
+## When Expression
+* > switch - Statement on sterioids
+* 
+  ```kotlin
+  val num = 200
+  val offset = 500
+  when (num) {
+    100, 600 -> println("100")    // multiple condition run same code
+    200 -> println("200")
+    in 300..399  -> println("300")    // validating against ranges
+    offset + 100 -> print("offset")   // dynamic condition
+
+    else -> println("Doesn't match to anything relevant")
+  }
+  ```
+  * no break statement required - is added by compiler automatically.
+  * Hence only exactly one branch is executed and no "fall-through" is possible by `when`
+  
+* matching class type within when expression
+  ```kotlin
+  val something: Any = ....
+  val z = when (something) {
+    is String -> println(something.toUpperCase())
+    is BigDecimal -> println(something.remainder(BigDecimal(10.5)))
+    is Int -> println("${something - 22}")
+    // Without an default branch the compiler is not happy as a value needs to be returned and assigned to variable z
+    else -> println("no idea which type)    // return kotlin.Unit
+  }
+  ```
+
+## Try/Catch Expression
+* idea same as in java
+* can be used as expression in Kotlin
+* Kotlin doesn't distinguish between checked and unchecked Exceptions
+* ```kotlin
+  fun getNumber(s: String): Int {
+    return try {
+      Integer.parseInt(str)       // returned as it is last value in the block
+    }
+    catch(e: NumberFormatException) {
+      0                           // returned as it is last value in the block
+    } finally {
+      // no value can be returned from finally block
+      println("This is the finally block...")
+      -10                         // will NOT be returned!
+    }
+  }
+  ```
+  
+*
+  ```kotlin
+  fun getNumber(s: String): Int? {
+    return try {
+      Integer.parseInt(str)
+    }
+    catch(e: NumberFormatException) {
+      null
+    } finally {
+      println("This is the finally block...")
+    }
+  }
+
+  fun main(){
+    // using Elvis-Operator to throw an exception
+    println(getNumber("22.5") ?: throw IllegalArgumentException("Number isn't an Int))
+  }
+  ```
+
+## Kotlin Challenges (4.1)
+
+# Lambda Expression, Collections, and Generics
+
+## 
+## ...
+## ...
+## ...
+## ...
+## ...
+## ...
+
+# File I/O
+
+## Reading text files
+
+## Reading Binary Files and Try with Resources
+
+## Walking the File Tree
+
+# Java Interoperability
+
+## Nullability when using Java from Kotlin
+
+## More about calling Java from Kotlin
+
+## Calling Kotlin Functions from Java
+
+## Annotations when calling Kotlin from Java
+
+## Kotlin Challenges (Round 6 - 6.1)
+
+# Course Wrap Up
+
+## Revisit the Converted Kotlin Text Adventure
+
+## kotlin for Java Developers Wrap Up
 
 
 

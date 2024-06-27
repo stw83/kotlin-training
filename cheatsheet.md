@@ -1262,25 +1262,435 @@ fun main(){
 
 # Lambda Expression, Collections, and Generics
 
-## 
-## ...
-## ...
-## ...
-## ...
-## ...
-## ...
+## Lambda Expression Basics
+* Lambda quite similar to Java - inside curley braces `{}`
+* Lambda can be executed directly in Kotlin
+  `run { println("I'm in a lambda!") }`
+* lambdas can be written outside the argument () if it is the **only** or the **last argument**
+  `employees.minBy { e -> e.startYear }` instead of `employees.minBy({e -> e.startYear})`
+* **it-Parameter**: default parameter of the lambda: `employees.minBy { it.startYear }`
+* **Member-Reference**: provide member-accessor `employees.minBy(Emplyoyee::startYear)`
+* lambdas can access and change (if a **var**) local variables defined before the lambda - also method/function arguments (but these are non-mutable and can only be accessed and not changed)
+
+## Lambdas With Receivers
+* **with-function**: with converts the instance that is passed into an receiver and inside the lambda we don't need to reference to this again.
+* normal implementation:
+  ```kotlin
+    fun countTo100(): String{
+      val numbers = StringBuilder()
+      for (i in 1..99) {
+        numbers.append(i)
+        numbers.append(", ")
+      }
+      numbers.append(100)
+      return numbers.toString()
+    }
+  ```
+  * with with-function implementation:
+  ```kotlin
+    fun countTo100(): String{
+      val numbers = StringBuilder()
+      // numbers is the converted receiver Object
+      return with(numbers) {    // lambda without () braces
+        for (i in 1..99) {
+          append(i)             // numbers not needed anymore
+          this.append(", ")     // numbers not needed anymore - this is optinal
+        }
+        append(100)             // numbers not needed anymore
+        toString()              // return and  numbers not needed anymore
+      }
+    }
+  ```
+
+    * further optimization - using function body (no return required) and passing stringBuilder directly to with function
+  ```kotlin
+    fun countTo100(): String = 
+      with(StringBuilder()) {       // lambda without () braces
+        for (i in 1..99) {
+          append(i)                 
+          append(", ")         
+        }
+        append(100)                 
+        toString()                  
+      }
+
+* Using **Apply** - lambda **returns always the instance apply() is invoked on**
+  ```kotlin
+    fun countTo100(): String = 
+    StringBuilder().apply() {
+      for ( i in 1..99) {
+        append(i)
+        append(", ")
+      }
+      append(100)
+    }.toString()
+  ```
+
+* Return statements with in lambdas - labeling lambdas
+  * Following code returns from the function
+    ```kotlin
+    fun findByLastName(employees: List<Employee>, lastName: String){
+      employees.forEach {                 // lambda without brackets
+        if (it.lastName == lastName) {
+          println("Yes, found an employee with lastname $lastName")
+          return                          // returns whole function
+        }
+        println("Nope, no employee with lastname $lastName found")
+      }
+    }
+    ```
+
+  * Following code returns only from the lambda
+    ```kotlin
+    fun findByLastName(employees: List<Employee>, lastName: String){
+      employees.forEach returnBlock@ {        // label
+        if (it.lastName == lastName) {
+          println("Yes, found an employee with lastname $lastName")            
+          return@returnBlock
+        }
+        println("Nope, no employee with lastname $lastName found")
+      }
+    }
+    ```
+    * With this labeled implementation both println are invoked - which doesn't make any sense to print both outputs in this case!
+
+* Nested apply() blocks
+  ```kotlin
+  "Some String".apply {
+    "Another String".apply {
+      println(toLowerCase)    // applies to inner lambda ("Another String)
+    }
+  }
+  ```
+  * To Access also outer apply, labels must be used:
+  ```kotlin
+  "Some String".apply somestring@ {            // define label
+    "Another String".apply {
+      println(toLowerCase)    
+      println(this@somestring.toUpperCase())   // applied to "Some String"
+    }
+  }
+  ```
+    * Same is applicable for with functions
+
+## Lists
+* Most times java collections are used - but some more functionalities are available
+* Collection interface is implemented by List and Set interface
+* Kotlin tries to force immutability, e.g. listOf() generates immutable list
+  * listOf() --> java.util.Arrays$ArrayList (immutable)
+  * emptyList() --> kotlin.collections.EmptyList (immutable)
+  * arrayListOf() --> java.util.ArrayList (mutable)
+  * mutableListOf() --> java.util.ArrayList (mutable)
+  * listOf(arrayOf(...)) --> list of arrays
+  * arrayOf(...).toList() --> convert array to list
+* accessing elements of list like you to in java with arrays `list[0]`
+
+## Kotlin Collections Functions
+* accessing elements
+  * `strings.last()`  - last element
+  * `strings[3]` - element at position 3
+  * `strings.getOrNull(5)` - returns null if list is shorter than the index - avoiding IndexOutOfBoundsException!
+  * `ints.max()` - maximum list value (for ints)
+  * merge lists: `val mergedList = colorList + strings` - using concatenation
+  * remove duplictes: `val noDup = colorList.distinct()`
+  * merge lists and remove duplicates: `val merged = colorList.union(strings)`
+  * convert to mutableList: `val mutableList = seasons.toMutableList()`
+
+## Maps and Destructuring Declarations
+* maps can be mutable and immuatable (as lists)
+* the following map is of type *java.util.LinkedHashMap*
+  ```kotlin
+  val immutableMap = mapOf<Int, Car> (
+              1 to Car("Toyota", "green"), 
+              2 to Car("Mercedes", "silver"))
+  ```
+* the following mutable map is of type *java.util.LinkedHashMap*
+  ```kotlin
+  val mutableMap = mutableMapOf<Int, Car> (
+              1 to Car("green", "Toyota", 2020), 
+              2 to Car("silver", "Mercedes", 2021))
+* if hashMap is prefered use `hashMapOf<>()`
+
+* Destructering:
+  * `val (firstVal, secondVal) = Pair(10, "ten")`
+    * firstVal is 10
+    * secondVal is "ten"
+  * Applied this to maps:
+  ```kotlin
+  for (entry in myMap) {
+    println(entry.key)
+    println(entry.value)
+  }
+  ```
+  can be optimized:
+  ```kotlin
+  for ((key, value) in myMap) {   // Destructuring
+    println(key)
+    println(value)
+  }
+  ```
+  To have this destructuring functionality the so called *Component Functions* needs to be implemented (which are by default implemented for Pair, Map, ...)
+
+  * Component Functions
+  ```kotlin
+  class Car(val color: String, val model: String, val year:Int) {
+    operator fun component1() = color
+    operator fun component2() = model
+    operator fun component3() = year
+  }
+
+  fun main(){
+    val myCar = Car("darkblue", "Mercedes", 1997)
+    val (color, model, year) = myCar
+  }
+  ```
+  For Destructuring the related `componentX()` methods are invoked.
+  > Data classes have the **component functions implemented automatically**
+
+## Sets in Kotlin
+* Comparable to Lists (but without duplicates) - same way to generate them
+* `setOf(10, 15, 19, -22).plus(20).plus(10).minus(19)`
+  * return always the set
+* avg value: `setOf(10, 11, 12).average())`
+* drop first n elements: `print(setOf(1, 2, 3, 4, 5).drop(3))` --> [4, 5]
+* 
+
+## More Collections Functions in Kotlin
+* filtering inside collection
+  * `setInts.filter { it % 2 != 0 }` return all non-odd numbers of the set
+  * `carList.filter { it.value.year == 2016}` returns the matching car elements, value for accessing from pair element
+  * The filters don't change the collections (same behaviour as in java working on streams)
+  * Adding 10 to int-list: `val listPlus10 = arrayOf(1, 2, 3).map { it + 10}`
+
+* Chaining operations:
+  ```kotlin
+  // get colors of the Ford cars
+  carMap.filter { it.value.model == "Ford"}.map { it.value.color }
+  // filter for 'newer' cars
+  carMap.filter { it.value.year > 2014}
+  // is there any newer car?
+  carMap.any { it.value.year > 2014}
+  // count number of newer cars
+  carMap.count { it.value.year > 2014}
+
+  // get values as list and find first 'new' car
+  carMap.values.find { it.year > 2014}
+
+  // group by color - map with key color and list of cars as value
+  carMap.values.groupBy { it.color }
+
+  // sort list by year
+  carMap.values.sortedBy { it.year }
+  ```
+
+## Sequences in Kotlin
+* above chained operations (filter, map, ...) generate intermediate collections, which isn't a problem for small initial collections
+* By using sequences we can avoid the creation of intermediate collections - and they are also usefull in case of large collections with unknown size (e.g. database query)
+* more or less same/comparable to java streams (but own approach as java streams have been introduced in java with version 1.8 and are not supported on all platforms)
+* converting a collection to a sequence can be done by `x.asSequence()` - but this should only be done for large collections as kotlin collections are quite efficient.
+  ```kotlin
+  carMap.asSequence()
+    .filter { it.value.model == "Ford" }    // intermediate operation
+    .map { it.value.color }                 // intermediate operation
+    .toList()                               // terminate operation terminates sequence
+  ```
+  * Now each element is processed element wise without the generation of intermediate collections
+  * Sequences need an terminal operation (like `collect(), toList()` in java and terminate the sequence) - all other (=intermediate) operations return a sequence again and are executed lazy means they are executed if there is a terminal operation applied
+
+  * Debugging by printing out sequence/collection operations:
+  ```kotlin
+  carMap
+    // semicolon required inside lambda for print()!!!
+    .filter { println("filter $it"); it.value.model == "Ford" }
+    .map { println("map $it"); it.value.color.toUppercase() }
+  ```
+
+## Generics in Kotlin
+* in kotlin generic info needs to be provided explicitly each time (no implicit fallback to Any) if compiler cannot determine the type on its own
+* syntax: `fun <T> printCollection(List<T> list)`
+
+## Generics: Functions and Erasure
+* restrict to specific interfaces (upper bounds) using keyword **where**
+  ```kotlin
+    fun <T> append(item1: T, item2: T)
+      where T: CharSequence, T: Appendable {    // BOTH interfaces must be implemented
+        println("Result is ${item1.append(item2)}")
+      }
+  ```
+  * All listed types of the where clause needs to be fullfilled/implemented
+  * within the where clause also a class can be defined
+* T accepts Null- and Non-Nullable Types
+* Accept only Non-Nullable Types:
+  ```kotlin
+  fun <T:Any> printCollection(collection: List<T>) {
+    for (item in collection){
+      print(item)
+    }
+  }
+  ```
+* Accept Nullable Numbers:
+  ```kotlin
+  fun <T: Number?> printCollection(collection: List<T>) {
+    for (item in collection){
+      print(item)
+    }
+  }
+  ```
+
+* Type Erasure
+  * in Java generics are used by the Compiler to support type checking at compile time, but are not part of the byte code. If the compiled java code is executed there are no generic information available anymore!
+
+  * Java
+  ```java
+  List<String> strings = new ArrayList();
+
+  boolean b = strings instanceof List<>;        // compiles
+  boolean b = strings instanceof List<String>;  // does not compile
+  ```
+
+  Kotlin
+  ```kotlin
+  val strings = listOf("1", "2", "3")
+  val listAny: Any = listOf("str1", "str2")
+
+  if (strings is List<String>) {
+    println("is of type List<String>")     // is printed --> replaced by compiler
+  }
+
+
+  if (listAny is List)                    // compiler wants to have a generic type!
+  if (listAny is List<String>)            // compiler error!
+  
+  if (listAny is List<*>)                 // Working (Star projection)
+  ```
+
+## Generics: Reified Parameters in Kotlin
+* > with inline function and reified generic parameter it is possible to do type-checking at runtime! as the types are not ereased during compile
+* as seen before (previous section) the generic types cannot be evaluated to runtime - this also is valid for the generic type information for an function parameter
+  ```kotlin
+  fun main(){
+    getElementsOfType<BigDecimal>(listOf(1, 2, 3))
+  }
+
+  fun <T> getElementsOfType(list: List<Any>): List<T> {
+    var newList = MutableList<T> = mutableListOf()
+    for (element in list){
+      if (element is T){              // cannot check of erased type T at runtime
+        newList.add(element)
+      }
+    }
+    return newList
+  }
+  ```
+* With **inlined functions** and **reified generic parameter** we can check the type at runtime
+  ```kotlin
+  fun main(){
+    val mixedList:List<Any> = listOf("string", 1, BigDecimal(2.3), 3L, BigDecimal(-7892.233))
+    var filteredList = getElementsOfType<BigDecimal>(mixedList)
+  }
+
+  inline fun <reified T> getElementsOfType(list: List<Any>): List<T> {
+    var newList = MutableList<T> = mutableListOf()
+    for (element in list){
+      if (element is T){              // cannot check of erased type T at runtime
+        newList.add(element)
+      }
+    }
+    return newList
+  }
+  ```
+
+## Generics: Covariance
+
+## Generics: Contravariance
+
+## Generics: Use-Site Variance
 
 # File I/O
+* Mostly using the io files of java jdk
+* Kotlin has some convinient extension functions
 
 ## Reading text files
+* [Doku Kotlin.io](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.io/)
+* Java: `new InputStreamReader(new FileInputStreamReader(new File("testfile.txt")), "UTF-8")` 
+* Kotlin: 
+`File("testfile.txt").reader()`
+* `val lines = File("testfile.txt").reader().readLines()`
+* Doc only mention if we have to close streams - if nothing is mentioned it will be autoclosed by the method itself
+* Normally if a read-function has `use` in the name the resources are closed by the method itself automatically
+* Closing reader the 'java' way
+  ```kotlin
+  val reader = File("testfile.txt").reader()
+  val lines = reader.readText()
+  println(lines)
+  reader.close()
+  ```
+* Closing reader the Kotlin way using **use function**
+  ```kotlin
+  val lines = File("testfile.txt").reader().use { it.readText() }
+  println(lines)
+  ```
+  * After lamba is finished/executed the resource is closed
+* `val lines = File("testfile.txt").readText()`
+* Processing line by line: `File("testfile").reader().forEachLine { println(it) }`
+* Get lines as sequence: `File("testfile").reader().useLines { it.forEach { println(it) } }`
 
 ## Reading Binary Files and Try with Resources
+* Best to use the java classes for binary reading
+* Reading binary file with Kotlin
+  ```kotlin
+  val di = DataInputStream(FileInputStream("testfile.bin"))
+  var si: String
 
+  try {
+    while (true) {
+      si = di.readUTF()
+      println(si)
+    }
+  }
+  catch (e: EOFException){
+
+  }
+  ```
+
+* Not really an enhancement of binary file reading in Kotlin compared to java
+
+### Writing files
+* Kotlin has added extensions for `Reader` and `BufferedReader` 
+
+* Try-with-resources in Kotlin equivalent is the **use-function**
+```kotlin
+
+```
 ## Walking the File Tree
+* Kotlin extension for file class helping walking the file tree
+* walk-top-down example in the project directory (directories are visited before the files)
+  ```kotlin
+  File(".")walkTopDown()                  // generates a file sequence
+    .forEach { print(it) }
+  ```
+
+* Only show Kotlin files:
+  ```kotlin
+  File(".")walkTopDown()                  // generates a file sequence
+    .filter { it.name.endsWith(".kt") }   // filter for kotlin files
+    .forEach { print(it) }
+  ```
+
 
 # Java Interoperability
 
 ## Nullability when using Java from Kotlin
+
+* Creating objects from java classes is no problem
+* Nullability: 
+  * Java only have annotations for documentational purpose
+  * Kotlin derives ? on declaration based on the annotation (org.jetbrains.annotations package)
+* If Kotlin cannot infer if the java propery is nullable or nonnull a platform type is created that can be both (as it is in java) - these types cannot be created within Kotlin itself - the type is nullable.
+* if the error in the IDE shows some type mismatch and one of the types is **followed by an !** we know that this is an platform type
+  * e.g. we want to pass an arrayOf(1,2,3) to the java code, this won't work - do one of the following:
+    * `arrayOf(1,2,3).toIntArray()`
+    * `intArrayOf(1,2,3)`
 
 ## More about calling Java from Kotlin
 
@@ -1289,6 +1699,7 @@ fun main(){
 ## Annotations when calling Kotlin from Java
 
 ## Kotlin Challenges (Round 6 - 6.1)
+
 
 # Course Wrap Up
 
